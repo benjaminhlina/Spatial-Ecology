@@ -1,5 +1,7 @@
 
 # Spatial Ecology for Lake Trout in a Multibasin Lake.
 
+[![DOI](https://zenodo.org/badge/673510977.svg)](https://zenodo.org/badge/latestdoi/673510977)
+
 Code and data for manuscript focused on how the size and availability of
 thermal habitats drives differences spatial ecology of Lake Trout.
