@@ -313,32 +313,6 @@ df_nodes_sf <- nodes_sf %>%
   )
 df_nodes_sf
 
-# convert from and to to hacaracters 
-df <- df %>% 
-  mutate_at(vars(from, to), as.character)
-
-df
-test <- df %>% 
-  mutate(S = map2_chr(from, to,
-                      ~str_flatten(sort(c(.x,.y)))))
-
-
-t1 <- test %>% 
-  st_drop_geometry() %>% 
-  
-  dplyr::select(S) %>% 
-  distinct() %>% 
-  mutate(pair_id = 1:n() )    
-
-t1
-t2 <- left_join(test, t1, by = "S") %>% 
-  arrange(from_to)
-
-t2 %>% 
-  print( n = 53)
-
-# myDf[!duplicated(t(apply(myDf, 1, sort))),]
-
 # ---- use sfnetworks to create network ----
 test_network <- sfnetwork(nodes = df_nodes_sf, edges = df, 
                           directed = TRUE, 
