@@ -282,9 +282,9 @@ df <- edges_sf %>%
   select(floy_tag:rec_source_group, 
          rec_dest_group, season, weight, from,
          to, from_to, cost_dist, geometry)
-  # mutate(
-  #   from_to_n = paste(from, to, sep = "-")
-  # )
+# mutate(
+#   from_to_n = paste(from, to, sep = "-")
+# )
 
 # grab nodes for one fish 
 df_source <- df %>% 
@@ -314,27 +314,27 @@ df_nodes_sf <- nodes_sf %>%
 df_nodes_sf
 
 # convert from and to to hacaracters 
-df <- df %>% 
+df <- df %>%
   mutate_at(vars(from, to), as.character)
 
 df
-test <- df %>% 
+test <- df %>%
   mutate(S = map2_chr(from, to,
                       ~str_flatten(sort(c(.x,.y)))))
 
 
-t1 <- test %>% 
-  st_drop_geometry() %>% 
-
-  dplyr::select(S) %>% 
-  distinct() %>% 
-  mutate(pair_id = 1:n() )    
+t1 <- test %>%
+  st_drop_geometry() %>%
+  
+  dplyr::select(S) %>%
+  distinct() %>%
+  mutate(pair_id = 1:n() )
 
 t1
-t2 <- left_join(test, t1, by = "S") %>% 
+t2 <- left_join(test, t1, by = "S") %>%
   arrange(from_to)
-  
-t2 %>% 
+
+t2 %>%
   print( n = 53)
 
 # myDf[!duplicated(t(apply(myDf, 1, sort))),]
@@ -352,10 +352,10 @@ node <- 3
 
 from_x <- test_network %>% 
   igraph::shortest_paths(from = node, to = igraph::V(test_network), 
-                                               mode = "in")
+                         mode = "in")
 from_x
 net <- test_network %>% 
-activate("edges") %>%
+  activate("edges") %>%
   mutate(weight = edge_length())
 
 paths = st_network_paths(net, 
@@ -477,9 +477,9 @@ ggplot() +
             linetype = from_to_n,
             colour = weight
           ),
-            # arrow = arrow(angle = 45, ends = "last", 
-            #               type = "open", length = unit(0.5, "cm")),
-            # 
+          # arrow = arrow(angle = 45, ends = "last", 
+          #               type = "open", length = unit(0.5, "cm")),
+          # 
           size = 1.1) +
   geom_sf(data = st_as_sf(test_network, "nodes"), 
           aes(
@@ -678,94 +678,95 @@ for (i in 1:length(fish_id)) {
   m <- m %>%
     activate("nodes") %>%
     mutate(deg = centrality_degree(loops = TRUE,mode = "in", 
-                                   weights = weight) %>%
-             
-             activate("edges") %>%
-             
-             morph(to_split, season) %>%
-             mutate(ebc = centrality_edge_betweenness(weights = weight,
-                                                      directed = TRUE)) %>%
-             unmorph()
-           
-           bcs <- m %>% 
-             activate("nodes") %>% 
-             as_tibble()
-           bcs <- unique(bcs$bc)
-           
-           
-           dats <- dat %>% 
-             select(to, from, season, weight, geometry)
-           
-           if (is.nan(bcs)) {
-             p <- ggplot() +
-               geom_sf(data = p_map) +
-               geom_sf(data = st_as_sf(m, "edges"), 
-                       aes(colour = ebc),
-                       size = 1.1) +
-               geom_sf(data = st_as_sf(m, "nodes"), 
-                       # aes(size = bc)
-               ) +
-               facet_wrap(.~season, nrow = 1) + 
-               # geom_sf(data = rl_sum_sf, aes(colour = receiver_basin), 
-               # #         size = 4) + 
-               # geom_sf(data =  dat_sl, aes(size = weight, 
-               #                             colour = receiver_basin)) + 
-               # geom_point(data = rl_sum_lt, aes(x = rec_group_long, 
-               #                              y = rec_group_lat, 
-               #                              colour = receiver_basin),
-               #            size = 4) + 
-               
-               # geom_sf(data = rl_sum_sf, aes(colour = basin),
-               #         size = 4) + 
-             scale_colour_viridis_c(begin = 0.15, end = 0.75, option = "B", 
-                                    name = "Edge Betweeness") +
-               scale_size_continuous(range = c(1, 5), 
-                                     name = "Centraility Betweeness") +
-               coord_sf() + 
-               
-               # facet_wrap(. ~ season, nrow = 1) + 
-               theme_bw(base_size = 14) + 
-               theme(panel.grid.major = element_blank()) + 
-               labs(x = "Longitude", 
-                    y = "Latitude", 
-                    title = paste(unique(dat$floy_tag)))
-           } else {
-             p <- ggplot() +
-               geom_sf(data = p_map) +
-               geom_sf(data = st_as_sf(m, "edges"), 
-                       aes(colour = ebc),
-                       size = 1.1) +
-               geom_sf(data = st_as_sf(m, "nodes"),
-                       aes(size = bc)
-               ) +
-               facet_wrap(.~season, nrow = 1) + 
-               # geom_sf(data = rl_sum_sf, aes(colour = receiver_basin), 
-               # #         size = 4) + 
-               # geom_sf(data =  dat_sl, aes(size = weight, 
-               #                             colour = receiver_basin)) + 
-               # geom_point(data = rl_sum_lt, aes(x = rec_group_long, 
-               #                              y = rec_group_lat, 
-               #                              colour = receiver_basin),
-               #            size = 4) + 
-               
-               # geom_sf(data = rl_sum_sf, aes(colour = basin),
-               #         size = 4) + 
-             scale_colour_viridis_c(begin = 0.15, end = 0.75, option = "B", 
-                                    name = "Edge Betweeness") +
-               scale_size_continuous(range = c(1, 5), 
-                                     name = "Centraility Betweeness") +
-               coord_sf() + 
-               
-               # facet_wrap(. ~ season, nrow = 1) + 
-               theme_bw(base_size = 14) + 
-               theme(panel.grid.major = element_blank()) + 
-               labs(x = "Longitude", 
-                    y = "Latitude", 
-                    title = paste(unique(dat$floy_tag))) 
-           }
-           print(p)
-           
-           
+                                   weights = weight)
+    ) %>%
+    
+    activate("edges") %>%
+    
+    morph(to_split, season) %>%
+    mutate(ebc = centrality_edge_betweenness(weights = weight,
+                                             directed = TRUE)) %>%
+    unmorph()
+  
+  bcs <- m %>% 
+    activate("nodes") %>% 
+    as_tibble()
+  bcs <- unique(bcs$bc)
+  
+  
+  dats <- dat %>% 
+    select(to, from, season, weight, geometry)
+  
+  if (is.nan(bcs)) {
+    p <- ggplot() +
+      geom_sf(data = p_map) +
+      geom_sf(data = st_as_sf(m, "edges"), 
+              aes(colour = ebc),
+              size = 1.1) +
+      geom_sf(data = st_as_sf(m, "nodes"), 
+              # aes(size = bc)
+      ) +
+      facet_wrap(.~season, nrow = 1) + 
+      # geom_sf(data = rl_sum_sf, aes(colour = receiver_basin), 
+      # #         size = 4) + 
+      # geom_sf(data =  dat_sl, aes(size = weight, 
+      #                             colour = receiver_basin)) + 
+      # geom_point(data = rl_sum_lt, aes(x = rec_group_long, 
+      #                              y = rec_group_lat, 
+      #                              colour = receiver_basin),
+      #            size = 4) + 
+      
+      # geom_sf(data = rl_sum_sf, aes(colour = basin),
+      #         size = 4) + 
+    scale_colour_viridis_c(begin = 0.15, end = 0.75, option = "B", 
+                           name = "Edge Betweeness") +
+      scale_size_continuous(range = c(1, 5), 
+                            name = "Centraility Betweeness") +
+      coord_sf() + 
+      
+      # facet_wrap(. ~ season, nrow = 1) + 
+      theme_bw(base_size = 14) + 
+      theme(panel.grid.major = element_blank()) + 
+      labs(x = "Longitude", 
+           y = "Latitude", 
+           title = paste(unique(dat$floy_tag)))
+  } else {
+    p <- ggplot() +
+      geom_sf(data = p_map) +
+      geom_sf(data = st_as_sf(m, "edges"), 
+              aes(colour = ebc),
+              size = 1.1) +
+      geom_sf(data = st_as_sf(m, "nodes"),
+              aes(size = bc)
+      ) +
+      facet_wrap(.~season, nrow = 1) + 
+      # geom_sf(data = rl_sum_sf, aes(colour = receiver_basin), 
+      # #         size = 4) + 
+      # geom_sf(data =  dat_sl, aes(size = weight, 
+      #                             colour = receiver_basin)) + 
+      # geom_point(data = rl_sum_lt, aes(x = rec_group_long, 
+      #                              y = rec_group_lat, 
+      #                              colour = receiver_basin),
+      #            size = 4) + 
+      
+      # geom_sf(data = rl_sum_sf, aes(colour = basin),
+      #         size = 4) + 
+    scale_colour_viridis_c(begin = 0.15, end = 0.75, option = "B", 
+                           name = "Edge Betweeness") +
+      scale_size_continuous(range = c(1, 5), 
+                            name = "Centraility Betweeness") +
+      coord_sf() + 
+      
+      # facet_wrap(. ~ season, nrow = 1) + 
+      theme_bw(base_size = 14) + 
+      theme(panel.grid.major = element_blank()) + 
+      labs(x = "Longitude", 
+           y = "Latitude", 
+           title = paste(unique(dat$floy_tag))) 
+  }
+  print(p)
+  
+  
 }
 dev.off()
 # ---- removing sf part of network ----- 
