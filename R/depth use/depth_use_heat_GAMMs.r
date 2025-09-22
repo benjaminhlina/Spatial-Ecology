@@ -87,18 +87,23 @@ unique(ful_depth$mean_lat)
 
 
 knots <- list(doy = c(0.5, 366.5))
+
+
+
 # --------------------------crreat big bammmmmm ---------------------
 m <- bam(mean_depth ~ 
            # s(hour, k = 10, by = fish_basin, bs = "cc") + 
-           s(doy, k = 15, by = fish_basin, bs = "cc") +
+           te(doy, mean_long, mean_lat, k = c(15, 10, 10),
+              by = fish_basin,
+              bs = c("cc", "tp", "tp")) +
            s(floy_tag, year, bs = c("re", "re"),
-             by = fish_basin) +
-           s(mean_long, mean_lat, k = 100, bs = "ds", m = c(1, 0.5)) +  
+             by = fish_basin),
+           # s( k = 100, bs = "ds", m = c(1, 0.5)) +  
          # ti(doy, year, bs = c("cc", "re"), k = c(12, 4)) +
          # ti(mean_long, mean_lat, hour, d = c(2, 1), bs = c("ds", "cc"),
          #    m = list(c(1, 0.5), NA), k = c(20, 10)) + 
-         ti(mean_long, mean_lat, doy, d = c(2, 1), bs = c("ds", "cc"),
-            m = list(c(1, 0.5), NA), k = c(25, 15)),
+         # ti(mean_long, mean_lat, doy, d = c(2, 1), bs = c("ds", "cc"),
+         #    m = list(c(1, 0.5), NA), k = c(25, 15)),
          # ti(mean_long, mean_lat, year, d = c(2, 1), bs = c("ds", "re"),
          #    m = list(c(1, 0.5), NA), k = c(25, 4)),
          

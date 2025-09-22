@@ -56,14 +56,18 @@ rl_sum_rec <- rl_sum %>%
     name %in% c(3, 4, 11, 19, 23)  ~ 1,
     name %in% 12 ~ 2,
     name %in% c(2, 18) ~ 3,
-    name %in% c(1, 9, 10) ~ 4,
-    name %in% c(5, 6) ~ 5,
-    name %in% c(21, 22) ~ 6,
-    name %in% c(7, 20) ~ 7,
-    name %in% c(8, 17) ~ 8,
-    name %in% 16 ~ 9,
-    name %in% 15 ~ 10,
-    name %in% c(13, 14) ~ 11)
+    name %in% 1 ~ 4,
+    name %in% 10 ~ 5,
+    name %in% 9 ~ 6,
+    name %in% 5 ~ 7,
+    name %in% 6 ~ 8,
+    name %in% c(21, 22) ~ 9,
+    name %in% c(7, 20) ~ 10,
+    name %in% c(8) ~ 11,
+    name %in% c(17) ~ 12,
+    name %in% 16 ~ 13,
+    name %in% 15 ~ 14,
+    name %in% c(13, 14) ~ 15)
   )
 # mutate(rec_group = case_when(
 #   name %in% c(3, 4, 11, 19, 23)  ~ "Central East Basin",
@@ -206,10 +210,11 @@ rec_order <- prep_path %>%
     rl_sum_sf %>% 
       mutate(
         lon = as.character(st_coordinates(.)[,"X"]), 
+        lat = as.character(st_coordinates(.)[,"Y"]), 
       ) %>% 
       st_drop_geometry() %>% 
-      rename(from = rec_group), by = c("lon")
-  ) %>%  
+      rename(from = rec_group), by = c("lon", "lat")
+  ) %>% 
   left_join(
     rl_sum_sf %>% 
       mutate(
@@ -223,13 +228,12 @@ rec_order <- prep_path %>%
   mutate(
     from_to = paste(from, "-", to, sep = "")
   ) %>% 
-  dplyr::select(from, to, from_to, lon, lat, llon, llat) %>% 
-  mutate(across(lon:llat, ~as.numeric(.)))
+  dplyr::select(from, to, from_to, lon, lat, llon, llat)
 
 rec_order
 
-rec_order %>% 
-  print(n = 121)
+# rec_order %>% 
+#   print(n = 121)
 # rec_order %>%
 #   filter(from_to %in% "3-11") %>%
 #   ggplot() +
@@ -240,9 +244,9 @@ rec_order %>%
 
 # rec_order is pre_path, with the metadata of which receivers go where  
 prep_path <- prep_path %>%
-  mutate_if(is.character, function(x) as.numeric(x))
+  mutate(across(lon:llat, as.numeric))
   
-
+prep_path
 # ---- convert prep_path df to sf object with lat/long being linestrings ----
 path <- prep_path %>%
   pmap(make_line) %>%
@@ -252,11 +256,13 @@ path <- prep_path %>%
     lon = st_startpoint(.) %>%
       st_coordinates(.) %>%
       as_tibble() %>%
-      .$X,
+      .$X %>% 
+      as.character(),
     llon = st_endpoint(.) %>%
       st_coordinates(.) %>%
       as_tibble() %>%
-      .$X
+      .$X %>% 
+      as.character()
   ) %>% 
   left_join(rec_order %>%
               select(from:lon, llon),
@@ -269,6 +275,8 @@ path <- prep_path %>%
 rec_order
 path %>% 
   print(n = 121)
+rec_order
+print(path, n = 225)
 
 # path %>%
 #   filter(from_to %in% "3-11") %>%
@@ -592,6 +600,9 @@ track_pts_fixs <- prt_update_points(rrt_pts = track_pts_fix,
 # View(track_pts_fixs)
 
 track_pts_fixs
+track_pts_fixs_trim <- track_pts_fixs %>% 
+  group_by(from_to) %>% 
+  slice(-n())
 
 # ggplot() + 
 #   geom_sf(data = land_region) + 
@@ -649,17 +660,17 @@ track_pts_fixed
 
 # view one reroute to confimr pathroutr is reouting 
 track_pts_fixs %>% 
-  filter(from_to == "11-4") %>% 
+  filter(from == "15") %>% 
   ggplot() + 
-  # geom_sf(data = land_region, fill = "cornsilk3", size = 0) +
+  geom_sf(data = land_region, fill = "cornsilk3", size = 0) +
   # # geom_sf(data = vis_graph_sf) +
   # geom_sf(data = rl_sum_sf_utm,
   #         size = 4, colour = "black") +
-  geom_sf(color = "deepskyblue3", 
+  geom_sf(aes(color = as.factor(to)), 
           size = 3) +
-  geom_sf(data = path_pts %>% 
-            filter(from_to == "11-4"), 
-          colour = "darkgrey") + 
+  # geom_sf(data = path_pts %>% 
+  #           filter(from_to == "11-4"), 
+  #         colour = "darkgrey") + 
   theme_void() -> p4 
 p4
 # ggsave(filename = here("pathroutr issue", 
@@ -668,7 +679,7 @@ p4
 #        height = 11, width = 8.5, plot = p4)
 
 track_pts_fixed %>% 
-  filter(from_to == "11-4") %>%
+  filter(from_to == "15-5") %>%
   ggplot() + 
   geom_sf(data = land_region, fill = "cornsilk3", size = 0) +
   # geom_sf(data = vis_graph_sf) +

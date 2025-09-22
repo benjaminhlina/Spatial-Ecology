@@ -202,8 +202,12 @@ lt_filter <- lt_filter %>%
 time_step <- 86400 
 
 lt_filter <- lt_filter %>% 
-  mutate(time_bin = floor_date(detection_timestamp_utc, 
-                               unit = "day") + (time_step / 2)) 
+  mutate(
+    detection_timestamp_est = with_tz(detection_timestamp_utc, tzone = "EST"),
+    time_bin = floor_date(detection_timestamp_est, 
+                          unit = " 1 day") 
+    # + (time_step / 2)
+  ) 
 
 
 
@@ -225,7 +229,7 @@ lt_filter <- lt_filter %>%
 ###################################### for daily residences ------
 # create summarized dataframe of for S whcih is per time_bin the number -----
 # of unique detections per rec_group -----
-S <- lt_filter %>% 
+ri_num <- lt_filter %>% 
   group_by(floy_tag, fish_basin, receiver_basin,
            rec_basin_num,
            rec_group,
@@ -233,8 +237,9 @@ S <- lt_filter %>%
            season_year, season, year, time_bin, 
            season_length, rec_group_num
   ) %>% 
-  summarise(S = n(),
-            rec_group_det = n_distinct(name)
+  summarise(
+    n_det = n(),
+    rec_group_det = n_distinct(name)
   ) %>% 
   ungroup %>% 
   # complete(floy_tag, 
@@ -253,31 +258,34 @@ S <- lt_filter %>%
   #          fill = list(S = 0, 
   #                      rec_group_det = 0)
   # ) %>% 
-  filter(!S < 10) %>%
+  filter(!n_det < 10) %>%
   arrange(floy_tag, time_bin)
 
-glimpse(S)
+glimpse(ri_num)
 # create t which is the nunber of unique times a fish was heard ------
 # anywhere per time_bin ----
 
-t <-  lt_filter %>% 
+ri_dem <-  lt_filter %>% 
   group_by(floy_tag, season_year, season_length, season, time_bin, year) %>% 
-  summarise(t = n()) %>% 
+  summarise(n_tot = n()) %>% 
   ungroup() %>% 
   arrange(floy_tag, time_bin)
 # %>% 
-  # complete(floy_tag, nesting(season_year, season_length, time_bin))
+# complete(floy_tag, nesting(season_year, season_length, time_bin))
 
-glimpse(S)
-glimpse(t)
+glimpse(ri_num)
+glimpse(ri_dem)
 
 
 # combine S and T datdframes to calculate residence index -----
-ri_k <- S %>% 
-  left_join(t, by = c("floy_tag", "season_year", "season_length" , "season", "year",  
-                      "time_bin"))
+ri_k <- ri_num %>% 
+  left_join(ri_dem, by = c("floy_tag", "season_year", "season_length" , 
+                           "season", "year",  
+                           "time_bin"))
 
 
+ri_k
+glimpse(ri_k)
 # ri_k[is.na(ri_k)] <- 0 
 
 
@@ -307,9 +315,9 @@ glimpse(ri_k)
 
 
 ri_k <- ri_k %>% 
-  mutate(ri = S / t, 
+  mutate(ri = n_det / n_tot, 
          roi = rec_group_det / rec_group_num) 
-ri_k$ri[is.nan(ri_k$ri)] <- 0
+# ri_k$ri[is.nan(ri_k$ri)] <- 0
 
 ri_k <- ri_k %>% 
   mutate(ri_w = ri / rec_group_num, 
@@ -317,7 +325,7 @@ ri_k <- ri_k %>%
 
 ri_k <- arrange(ri_k, floy_tag, time_bin, rec_group)
 
-
+glimpse()
 
 # er <- ri_k %>% 
 #   mutate(rec_group_num = case_when(floy_tag == "07025" 
@@ -358,16 +366,19 @@ fitdistrplus::descdist(ri_k$ri_w)
 # seasonal bases ------
 
 
-glimpse(ri_k)
-ri_k <- ri_k %>% 
-  mutate(date = floor_date(time_bin, unit = "day"))
+# glimpse(ri_k)
+# ri_k <- ri_k %>% 
+#   mutate(date = floor_date(time_bin, unit = "day"))
 
 
 
 glimpse(ri_k)
 
-write_rds(ri_k, here("Saved Data", 
-                     "daily_ri_roi_lkt.rds"))
+write_rds(ri_k, here(
+  "..",
+  'stables isotopes',
+  "Saved Data", 
+  "daily_ri_roi_lkt_for_sia.rds"))
 
 # on a seasonal time frame -----
 
@@ -514,7 +525,7 @@ ri_d
 
 ggplot(data = ri_d, aes(x = time_bin, y = ri, fill = rec_group)) + 
   geom_bar(stat = "identity", position = "stack") 
-  # scale_y_reverse()
+# scale_y_reverse()
 
 # fitdistrplus::descdist(ri_d$ri)
 # fitdistrplus::descdist(ri_k$ri)

@@ -49,6 +49,12 @@ library(tidyr)
 
 lt_smb <- read_rds(here("Saved Data", 
                         "lt_smb_telemetry_data.rds"))
+unique(lt_smb$species)
+smb <- lt_smb %>% 
+  filter(species %in% "smb")
+
+write_rds(smb, here("Saved Data", 
+               "smb_telemetry_data.rds"))
 
 glimpse(lt_smb)
 sum_sp <- lt_smb %>% 
@@ -64,18 +70,24 @@ sum_sp
 write_rds(sum_sp, here("Saved Data", 
                        "daily_mean_sensor_sp.rds"))
 
+sum_
+write_rds(sum_sp, here("Saved Data", 
+                       "daily_mean_sensor_sp.rds"))
+
+
+
 sum_temp <- sum_sp %>% 
   filter(sensor_unit %in% c("°C", "m") & mean_value > 0) %>% 
   pivot_wider(id_cols = c(species, doy, fish_basin, month, season),
               names_from = sensor_unit, 
               values_from = mean_value
-               ) %>% 
+  ) %>% 
   rename(
     depth = m, 
     temp = `°C`
   ) %>% 
   filter(depth != is.na(depth) & temp != is.na(temp)) 
-  
+
 
 unique(is.na(sum_temp$temp))
 
@@ -156,7 +168,7 @@ p <- ggplot(data = df_mu, aes(x = depth)) +
                        option = "G", name = "Species", 
                        labels = c("Lake Trout", "Smallmouth Bass")) + 
   # scale_y_continuous(breaks = seq(0, 2, 0.5), 
-                     # limits = c(0, 3)
+  # limits = c(0, 3)
   # ) + 
   scale_x_continuous(breaks = seq(6.5, 10, 0.5),
                      limits = c(6.5, 10)) +
@@ -184,7 +196,7 @@ p1 <- ggplot(data = df_mu, aes(x = temp)) +
         panel.grid = element_blank(),   
         axis.title.x =  element_markdown(),
         axis.title.y =  element_markdown(), 
-        ) + 
+  ) + 
   labs(x = paste("\u00b5", "<sub>Temperature (</sub>", 
                  "<sub><sup>\U00B0</sup></sub>", "<sub>C)</sub>", sep = ""),
        y = paste("p(", "\u00b5", "<sub>Temperature (</sub>", 
@@ -205,17 +217,17 @@ p2 <- ggplot(data = df_sigma_cn, aes(x = post_sample)) +
         panel.grid = element_blank(), 
         axis.title.x =  element_markdown(),
         axis.title.y =  element_markdown()
-        ) + 
+  ) + 
   labs(
     x = paste("\U03A3 ",
-       "<sub>", "Depth (m)", "</sub>", 
-       "<sub> Temperature (</sub>", 
-       "<sub><sup>\U00B0</sup></sub>", "<sub>C)</sub>", sep = ""),
+              "<sub>", "Depth (m)", "</sub>", 
+              "<sub> Temperature (</sub>", 
+              "<sub><sup>\U00B0</sup></sub>", "<sub>C)</sub>", sep = ""),
     y = paste("p(", "\U03A3 ",
-       "<sub>", "Depth (m)", "</sub>", 
-       "<sub> Temperature (</sub>", 
-       "<sub><sup>\U00B0</sup></sub>", "<sub>C)</sub>", "| X)", sep = "")
-       )
+              "<sub>", "Depth (m)", "</sub>", 
+              "<sub> Temperature (</sub>", 
+              "<sub><sup>\U00B0</sup></sub>", "<sub>C)</sub>", "| X)", sep = "")
+  )
 
 
 # p2

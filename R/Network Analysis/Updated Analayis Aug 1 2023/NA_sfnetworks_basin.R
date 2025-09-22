@@ -220,6 +220,26 @@ edges <- edges %>%
 glimpse(edges)
 glimpse(cd)
 edges
+# cd <- cd %>% 
+#   mutate(from_to_pair = map2_chr(from, to,
+#                       ~str_flatten(sort(c(.x,.y)))))
+# 
+# 
+# pair_id_df <- cd %>% 
+#   st_drop_geometry() %>% 
+#   dplyr::select(from_to_pair) %>% 
+#   distinct() %>% 
+#   mutate(pair_id = 1:n())
+# 
+# 
+# cd <- left_join(cd, pair_id_df, by = "from_to_pair") %>% 
+#   arrange(from_to) %>% 
+#   group_by(pair_id) %>%
+#   mutate(direction = case_when(is.na(pair_id) ~ NA_integer_, 
+#                               TRUE ~ row_number())) %>%
+#   ungroup %>% 
+#   dplyr::select(id:pair_id, direction, geometry)
+# 
 
 # ---- prep cost distance sf object to be joined to edge list -----
 # remove id - to in cd 
@@ -252,7 +272,7 @@ glimpse(edges_sf)
 
 # ---- create node sf object ---- 
 nodes_sf <- lt %>% 
-  group_by(rec_group, receiver_basin, ) %>% 
+  group_by(rec_group, receiver_basin) %>% 
   summarise(rec_group_lat = unique(rec_group_lat),
             rec_group_long = unique(rec_group_long)) %>% 
   ungroup() %>% 
@@ -282,6 +302,8 @@ df <- edges_sf %>%
   select(floy_tag:rec_source_group, 
          rec_dest_group, season, weight, from,
          to, from_to, cost_dist, geometry)
+
+df
 # mutate(
 #   from_to_n = paste(from, to, sep = "-")
 # )

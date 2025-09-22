@@ -105,3 +105,29 @@ ggsave(here("plots",
             "residency index",
             "map_bubble_residency_season_basin_rec_group.png"), 
        height = 11, width = 8.5, plot = p1)
+
+p2 <- ggplot() + 
+  geom_sf(data = p_map, fill = NA) + 
+  geom_sf(data = ri_sum_rb, aes(size = mean_ri, 
+                                fill = receiver_basin),
+          shape = 21) +
+  scale_fill_viridis_d(
+    begin = 0.35, end = 0.85,
+    option = "G", name = "Receiver Basin") +
+  facet_grid(fish_basin ~ season) + 
+  scale_size(name = "Mean Weighted\nResidency Index") +
+  theme_bw(base_size = 15) + 
+  guides(fill = guide_legend(override.aes = list(size = 5))) + 
+  theme(
+    panel.grid = element_blank(), 
+    strip.background = element_blank(),
+    axis.text = element_blank(), 
+    axis.ticks = element_blank(), 
+    axis.title = element_blank()) + 
+  labs(x = "Longitude", 
+       y = "Latitude")
+# p2
+ggsave(here("plots", 
+            "residency index",
+            "map_bubble_residency_season_basin_presentation.png"), 
+       height = 11, width = 8.5, plot = p2)
